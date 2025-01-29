@@ -1,0 +1,19 @@
+version: "3.9"
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - db_data:/app/mydatabase.db  # Mapeia o volume nomeado para dentro do container
+    depends_on:
+      - database
+  database:
+    image: python:3.9-slim-buster # Imagem base para o banco de dados (melhor usar um banco de dados de verdade)
+    volumes:
+      - db_data:/app/mydatabase.db # Use uma lista aqui, mesmo que tenha apenas um item
+
+volumes:
+  db_data: # Declara o volume nomeado
