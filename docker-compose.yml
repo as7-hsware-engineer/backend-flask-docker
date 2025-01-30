@@ -1,4 +1,5 @@
 version: "3.9"
+
 services:
   backend:
     build:
@@ -7,13 +8,44 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - db_data:/app/mydatabase.db  # Mapeia o volume nomeado para dentro do container
+      - db_data:/app/mydatabase.db
+    depends_on:
+      database:
+        condition: service_healthy  # Espera o PostgreSQL estar pronto
+    environment:
+      POSTGRES_USER: etech
+      POSTGRES_PASSWORD: 12345678
+      POSTGRES_DB: meu_banco_de_dados
+      POSTGRES_HOST: database
+      POSTGRES_PORT: 5432
+
+  database:
+    image: postgres:13 
+    environment:
+      POSTGRES_USER: etech
+      POSTGRES_PASSWORD: 12345678
+      POSTGRES_DB: meu_banco_de_dados 
+    ports:
+      - "5432:5432" 
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U etech -d meu_banco_de_dados"]
+      interval: 5s
+      retries: 5
+      timeout: 3s
+
+  pgadmin:  # Adicionando o pgAdmin
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    ports:
+      - "8080:80"  # Acesse no navegador via http://localhost:8080
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
     depends_on:
       - database
-  database:
-    image: python:3.9-slim-buster # Imagem base para o banco de dados (melhor usar um banco de dados de verdade)
-    volumes:
-      - db_data:/app/mydatabase.db # Use uma lista aqui, mesmo que tenha apenas um item
 
 volumes:
-  db_data: # Declara o volume nomeado
+  db_data:
